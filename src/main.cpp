@@ -2,7 +2,7 @@
  * @Author: AndreaFrederica andreafrederica@outlook.com
  * @Date: 2024-09-19 18:46:03
  * @LastEditors: AndreaFrederica andreafrederica@outlook.com
- * @LastEditTime: 2024-09-19 19:37:27
+ * @LastEditTime: 2024-09-19 20:04:56
  * @FilePath: \fancontrol32\src\main.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -128,7 +128,7 @@ void setup() {
   // while (!Serial) {
   //   yield();
   // }
-  Serial1.begin(9600);
+  Serial.begin(9600);
 
   cout << F("\nInitializing SD card...\n");
   if (!sd.begin(SD_CS,SPI_SPEED)) {
@@ -151,13 +151,13 @@ void setup() {
     return;
   }
   // 输出读取到的CSV数据
-  Serial1.println("电压, 风扇百分比, PWM占空比");
+  Serial.println("电压, 风扇百分比, PWM占空比");
   for (int i = 0; i < dataCount; i++) {
-    Serial1.print(voltageData[i]);
-    Serial1.print(", ");
-    Serial1.print(fanPercentData[i]);
-    Serial1.print(", ");
-    Serial1.println(pwmPercentData[i]);
+    Serial.print(voltageData[i]);
+    Serial.print(", ");
+    Serial.print(fanPercentData[i]);
+    Serial.print(", ");
+    Serial.println(pwmPercentData[i]);
   }
 
   // 拟合电压-风扇百分比曲线
@@ -167,19 +167,19 @@ void setup() {
   fitCurve(fanPercentData, pwmPercentData, dataCount, fanPercentToPWMCoeffs);
 
   // 输出拟合的系数
-  Serial1.print("电压-风扇百分比系数: ");
-  Serial1.print(voltageToFanPercentCoeffs[0]);
-  Serial1.print(", ");
-  Serial1.print(voltageToFanPercentCoeffs[1]);
-  Serial1.print(", ");
-  Serial1.println(voltageToFanPercentCoeffs[2]);
+  Serial.print("电压-风扇百分比系数: ");
+  Serial.print(voltageToFanPercentCoeffs[0]);
+  Serial.print(", ");
+  Serial.print(voltageToFanPercentCoeffs[1]);
+  Serial.print(", ");
+  Serial.println(voltageToFanPercentCoeffs[2]);
 
-  Serial1.print("风扇百分比-PWM系数: ");
-  Serial1.print(fanPercentToPWMCoeffs[0]);
-  Serial1.print(", ");
-  Serial1.print(fanPercentToPWMCoeffs[1]);
-  Serial1.print(", ");
-  Serial1.println(fanPercentToPWMCoeffs[2]);
+  Serial.print("风扇百分比-PWM系数: ");
+  Serial.print(fanPercentToPWMCoeffs[0]);
+  Serial.print(", ");
+  Serial.print(fanPercentToPWMCoeffs[1]);
+  Serial.print(", ");
+  Serial.println(fanPercentToPWMCoeffs[2]);
 }
 
 void loop() {
@@ -188,12 +188,12 @@ void loop() {
   float fanPercent = calculateY(inputVoltage, voltageToFanPercentCoeffs);
   float pwmDuty = calculateY(fanPercent, fanPercentToPWMCoeffs);
 
-  Serial1.print("输入电压: ");
-  Serial1.print(inputVoltage);
-  Serial1.print("V, 对应风扇百分比: ");
-  Serial1.print(fanPercent);
-  Serial1.print("%, 对应PWM占空比: ");
-  Serial1.println(pwmDuty);
+  Serial.print("输入电压: ");
+  Serial.print(inputVoltage);
+  Serial.print("V, 对应风扇百分比: ");
+  Serial.print(fanPercent);
+  Serial.print("%, 对应PWM占空比: ");
+  Serial.println(pwmDuty);
 
   delay(1000); // 每秒更新一次
 }
