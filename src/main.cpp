@@ -2,16 +2,16 @@
  * @Author: AndreaFrederica andreafrederica@outlook.com
  * @Date: 2024-09-19 18:46:03
  * @LastEditors: AndreaFrederica andreafrederica@outlook.com
- * @LastEditTime: 2024-09-19 20:04:56
+ * @LastEditTime: 2024-09-19 20:10:06
  * @FilePath: \fancontrol32\src\main.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+#include "SdFat.h"
+#include "sdios.h"
 #include <Arduino.h>
 #include <ArduinoEigenDense.h> // Eigen库用于矩阵操作
 #include <SPI.h>
-#include "SdFat.h"
-#include "sdios.h"
 
 #define SD_CS PA7
 
@@ -51,6 +51,63 @@ FsFile file;
 
 // 串口流
 ArduinoOutStream cout(Serial);
+
+// 默认的电压区间和 PWM 占比
+const float DEFAULT_VOLTAGE_START = 7.0;
+const float DEFAULT_VOLTAGE_END = 13.8;
+const float DEFAULT_PWM_START = 50.0;
+const float DEFAULT_PWM_END = 99.0;
+
+// 创建默认 CSV 文件
+void createDefaultCSV() {
+  file = sd.open(CSV_FILE, FILE_WRITE);
+  if (!file) {
+    Serial.println("Error: Unable to create CSV file.");
+    return;
+  }
+
+  // 写入标题行
+  file.println("Voltage,FanPercent,PWM");
+
+  // 生成默认数据并写入 CSV 文件
+  const int numEntries = 10; // 默认数据点数量
+  float voltageStep =
+      (DEFAULT_VOLTAGE_END - DEFAULT_VOLTAGE_START) / (numEntries - 1);
+  float pwmStep = (DEFAULT_PWM_END - DEFAULT_PWM_START) / (numEntries - 1);
+
+  for (int i = 0; i < numEntries; i++) {
+    float voltage = DEFAULT_VOLTAGE_START + i * voltageStep;
+    float pwm = DEFAULT_PWM_START + i * pwmStep;
+    // 假设风扇百分比与电压成线性关系
+    float fanPercent =
+        map(voltage, DEFAULT_VOLTAGE_START, DEFAULT_VOLTAGE_END, 0, 100);
+
+    // 写入一行数据
+    file.print(voltage, 1);
+    file.print(", ");
+    file.print(fanPercent, 1);
+    file.print(", ");
+    file.println(pwm, 1);
+  }
+
+  file.close();
+  Serial.println("Default CSV file created with default data.");
+}
+
+// 检查并创建默认 CSV 文件
+void checkAndCreateCSV() {
+  if (!sd.begin(SD_CS, SPI_SPEED)) {
+    Serial.println("SD initialization failed.");
+    return;
+  }
+
+  if (!sd.exists(CSV_FILE)) {
+    Serial.println("CSV file not found. Creating default CSV file...");
+    createDefaultCSV();
+  } else {
+    Serial.println("CSV file already exists.");
+  }
+}
 
 // 文件查找函数
 void listFiles() {
@@ -131,7 +188,7 @@ void setup() {
   Serial.begin(9600);
 
   cout << F("\nInitializing SD card...\n");
-  if (!sd.begin(SD_CS,SPI_SPEED)) {
+  if (!sd.begin(SD_CS, SPI_SPEED)) {
     cout << F("SD initialization failed.\n");
     return;
   }
@@ -140,11 +197,12 @@ void setup() {
   listFiles();
 
   // 查找 CSV_FILE
-  if (!findFanControl()) {
-    cout << F("Failed to read CSV_FILE\n");
-  } else {
-    cout << F("Finished parsing CSV_FILE\n");
-  }
+  // if (!findFanControl()) {
+  //   cout << F("Failed to read CSV_FILE\n");
+  // } else {
+  //   cout << F("Finished parsing CSV_FILE\n");
+  // }
+  checkAndCreateCSV();
   // 读取CSV文件
   if (!readCSVFile(CSV_FILE)) {
     cout << F("Failed to read CSV_FILE\n");
