@@ -35,5 +35,9 @@
             "command": "extension.execute",
             "priority": 4
         }
-    ]
+    ],
+    "python.autoComplete.extraPaths": [],
+    "python.analysis.extraPaths": [],
+    "python.analysis.stubPath": "",
+    "micropython.enableCodeCompletion": false
 }
